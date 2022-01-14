@@ -5,3 +5,5 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 
 ![Circuit of the Tiny Compass Watch](figures/circuit.png)
 <p align="center">Figure 1. Circuit diagram of the Tiny Compass Watch
+
+  Comunication with MPU-9250 has been performed using [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c)
