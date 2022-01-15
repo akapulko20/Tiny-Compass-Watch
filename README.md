@@ -11,7 +11,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   **Code details**
   
   A single line of code should be changed according to your location (visit [noaa.gov](https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination) website to calculate the declination angle):
-  
-  >#define Declination     12                              // For Oulu, Finland ~ +12 deg (2021 year)
-  
+  ```C++
+#define Declination     12 // For Oulu, Finland ~ +12 deg (2021 year)
+```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250, however *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used.
