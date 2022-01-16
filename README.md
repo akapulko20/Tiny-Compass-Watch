@@ -16,7 +16,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 ```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250. However, *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used. Also, I2C clock frequency decreased down to 20kHz for a proper work with an internal pull-up resistors.
   
-  Two buttons on a board means more flexible device control. Pressing "Show Time" button while holding "Show North" button event calls **Calibration** procedure (press combinations) one of this -> Calibration function kriss winner algorithm...
+  Two buttons on a board means more flexible device control. Press and hold the *Show North* button, then press the *Show Time* button to launch the compass calibration procedure (light LEDs one-by-one clockwise starting from 12 - signal for start/done callibration procedure). -> Calibration function kriss winner algorithm...
 
   **Displaying North Direction**
   
