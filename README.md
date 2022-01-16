@@ -22,7 +22,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 
   **Displaying North Direction**
   
-  You can either press or press and hold *Show North* button whenever you want to find out north direction.
+  You can either press or press and hold *Show North* button whenever you want to find out north direction. 24 directions using 12 LEDs. Short flashes single LED or LEDs pair.
   
 ![Circuit of the Tiny Compass Watch](figures/north_show_example.png)
 <p align="center">Figure 2. Example One or Two LEDs Short Flashes
