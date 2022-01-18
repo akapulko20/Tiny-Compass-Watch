@@ -16,7 +16,8 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 ```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250. However, *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used. Also, I2C clock frequency decreased down to 20kHz for a proper work with an internal pull-up resistors.
   
-  The program interact with minimally sufficient set of the MPU-9250 registers. The *SetMPU9250()* function activate bypass mode in order to comunicate with MPU-6500 and AK8963 separately, and reads sensitivity adjustment values of AK8963 (factory calibrations of the axial sensitivity)
+  The program interact with minimally sufficient set of the MPU-9250 registers. In order to separately operate the AK8963 and MPU-6500 devices bypass mode should be selected. Magnetometer factory calibrations of the axial sensitivity (ASAX,ASAY,ASAZ) have been read and applied for both the measurements
+and calibration.
   ```C++
                void SetMPU9250() {
                  ...
@@ -36,7 +37,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
                  ...
                }
 ```
-  Continuous measurement mode 2 for AK8963 has been chosen as a compromise between the performance and power consumptions:
+  When not in power-down mode, the AK8963 operates in Continuous measurement mode 2 - a compromise between performance and power consumption:
    ```C++
                void WakeAK8963() {
                  I2CSetRegister(MAG, AK8963_CNTL1, 0x16);      // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
@@ -58,12 +59,11 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
                  ...
                }
 ```
-  
-  This approach is not the best, but perhaps is the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery depends on it's charge (which is time-dependent value) and spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
+  May not be the best approach, but probably the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery depends on it's charge (which is time-dependent value) and spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
   
   Another keys combination...
   
-  Simple math has been used to avoid sine and cosine functions:
+  Simple math has been used to avoid sine and cosine functions inside field horizontal components:
   ```C
                 AVEC = sqrt((AX * AX) + (AY * AY) + (AZ * AZ));
                 HXh = AVEC * HX * sqrt((AX * AX) + (AZ * AZ)) - HY * AX * AY + HZ * AY * sqrt((AY * AY) + (AZ * AZ));
