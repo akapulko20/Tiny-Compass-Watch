@@ -38,9 +38,9 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 ```
   Continuous measurement mode 2 for AK8963 has been chosen as a compromise between the performance and power consumptions:
    ```C++
-                void WakeAK8963() {
-                  I2CSetRegister(MAG, AK8963_CNTL1, 0x16);      // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
-                }
+               void WakeAK8963() {
+                 I2CSetRegister(MAG, AK8963_CNTL1, 0x16);      // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
+               }
 ```
   
   Two buttons on a board means more flexible device control. Press and hold the *Show North* button, then press the *Show Time* button to launch the compass calibration procedure (each LED blink one-by-one clockwise starting from 12 - the *DisplayCircle()* function indicate start/done of the calibration procedure). During the calibration process, slowly rotate watch so that each side (front, back, left, right, top and bottom) points down towards the earth for a few seconds in turn. A concise algorithm proposed by [kriswiner](https://github.com/kriswiner/MPU6050/wiki/Simple-and-Effective-Magnetometer-Calibration) has been used in order to determine magnetometer calibration parameters:
