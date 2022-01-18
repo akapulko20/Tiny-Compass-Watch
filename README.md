@@ -62,6 +62,14 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   This approach is not the best, but perhaps is the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery depends on it's charge (which is time-dependent value) and spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
   
   Another keys combination...
+  
+  Simple math has been used to avoid sine and cosine functions:
+  ```C++
+                AVEC = sqrt((AX * AX) + (AY * AY) + (AZ * AZ));
+                HXh = AVEC * HX * sqrt((AX * AX) + (AZ * AZ)) - HY * AX * AY + HZ * AY * sqrt((AY * AY) + (AZ * AZ));
+                HYh = AVEC * (HY * sqrt((AY * AY) + (AZ * AZ)) + HZ * AX);
+                Heading = atan2(HYh, HXh) * RAD_TO_DEG;         // Magnetic North
+```
 
   **Displaying North Direction**
   
