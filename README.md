@@ -16,38 +16,46 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
 ```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250. However, *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used. Also, I2C clock frequency decreased down to 20kHz for a proper work with an internal pull-up resistors.
   
-  The program interact with minimally sufficient set of the MPU-9250 registers:
+  The program interact with minimally sufficient set of the MPU-9250 registers. The *SetMPU9250()* function activate bypass mode in order to comunicate with MPU-6500 and AK8963 separately, and reads sensitivity adjustment values of AK8963 (factory calibrations of the axial sensitivity)
   ```C++
-                      /* AK8963 register map */
-                      #define AK8963_ST1          0x02
-                      #define AK8963_XOUT_L       0x03
-                      #define AK8963_CNTL1        0x0A
-                      #define AK8963_ASTC         0x0C
-                      #define AK8963_ASAX         0x10
-                      /* MPU-6500 register map */
-                      #define ACCEL_CONFIG        0x1C
-                      #define ACCEL_CONFIG2       0x1D
-                      #define INT_PIN_CFG         0x37
-                      #define INT_STATUS          0x3A
-                      #define ACCEL_XOUT_H        0x3B
-                      #define PWR_MGMT_1          0x6B
-                      #define PWR_MGMT_2          0x6C
+                      void SetMPU9250() {
+                        ...
+                        I2CSetRegister(ACEL_GIRO, INT_PIN_CFG, 0x02);         // Set bypass enable bit
+                        ...
+                        I2CSetRegister(MAG, AK8963_CNTL1, 0x0F);              // Fuse ROM access mode
+                        TinyMegaI2C.start(MAG, 0);
+                        TinyMegaI2C.write(AK8963_ASAX);
+                        TinyMegaI2C.restart(MAG, -1);
+                        uint8_t asax = TinyMegaI2C.read(0x01);                // Read x-axis sensitivity adjustment value
+                        uint8_t asay = TinyMegaI2C.read(0x01);                // Read y-axis sensitivity adjustment value
+                        uint8_t asaz = TinyMegaI2C.read(0x00);                // Read z-axis sensitivity adjustment value
+                        TinyMegaI2C.stop();
+                        ASAX = (asax / 256) + 0.5F;
+                        ASAY = (asay / 256) + 0.5F;
+                        ASAZ = (asaz / 256) + 0.5F;
+                        ...
+                      }
 ```
-  
+  Continuous measurement mode 2 for AK8963 has been chosen as a compromise between the performance and power consumptions:
+   ```C++
+                      void WakeAK8963() {
+                        I2CSetRegister(MAG, AK8963_CNTL1, 0x16);              // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
+                      }
+```
   
   Two buttons on a board means more flexible device control. Press and hold the *Show North* button, then press the *Show Time* button to launch the compass calibration procedure (each LED blink one-by-one clockwise starting from 12 - the *DisplayCircle()* function indicate start/done of the calibration procedure). During the calibration process, slowly rotate watch so that each side (front, back, left, right, top and bottom) points down towards the earth for a few seconds in turn. A concise algorithm proposed by [kriswiner](https://github.com/kriswiner/MPU6050/wiki/Simple-and-Effective-Magnetometer-Calibration) has been used in order to determine magnetometer calibration parameters:
   ```C++
                       void MagCalibration(uint16_t points) {
-                      ...
-                      /* Hard-iron offsets */
-                      OFFX = (MAXX + MINX) >> 1;                           
-                      OFFY = (MAXY + MINY) >> 1;
-                      OFFZ = (MAXZ + MINZ) >> 1;
-                      /* Soft-iron scale factors */
-                      SCAX = 0.33 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
-                      SCAY = 0.33 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
-                      SCAZ = 0.33 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
-                      ...
+                        ...
+                        /* Hard-iron offsets */
+                        OFFX = (MAXX + MINX) >> 1;                           
+                        OFFY = (MAXY + MINY) >> 1;
+                        OFFZ = (MAXZ + MINZ) >> 1;
+                        /* Soft-iron scale factors */
+                        SCAX = 0.33 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
+                        SCAY = 0.33 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
+                        SCAZ = 0.33 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
+                        ...
                       }
 ```
   
