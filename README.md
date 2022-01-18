@@ -79,3 +79,5 @@ and calibration.
 <p align="center">Figure 2. Example One or Two LEDs Short Flashes
   
   **Uploading Program**
+  
+  All instructions can be found on [Mega Tiny Time Watch](http://www.technoblogy.com/show?2OKF) page. The only difference is the code size. ATtiny814 and ATtiny1614 are suitable.
