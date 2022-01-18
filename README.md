@@ -12,7 +12,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   
   A single line of code should be changed according to your location (visit [noaa.gov](https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination) website to calculate the declination angle):
   ```C++
-                      #define Declination     8                         // For Kyiv, Ukraine ~ +8 deg (2022 year)
+                      #define Declination     8                       // For Kyiv, Ukraine ~ +8 deg (2022 year)
 ```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250. However, *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used. Also, I2C clock frequency decreased down to 20kHz for a proper work with an internal pull-up resistors.
   
@@ -20,15 +20,15 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   ```C++
                       void SetMPU9250() {
                         ...
-                        I2CSetRegister(ACEL_GIRO, INT_PIN_CFG, 0x02);   // Set bypass enable bit
+                        I2CSetRegister(ACEL_GIRO, INT_PIN_CFG, 0x02); // Set bypass enable bit
                         ...
-                        I2CSetRegister(MAG, AK8963_CNTL1, 0x0F);        // Fuse ROM access mode
+                        I2CSetRegister(MAG, AK8963_CNTL1, 0x0F);      // Fuse ROM access mode
                         TinyMegaI2C.start(MAG, 0);
                         TinyMegaI2C.write(AK8963_ASAX);
                         TinyMegaI2C.restart(MAG, -1);
-                        uint8_t asax = TinyMegaI2C.read(0x01);          // Read x-axis sensitivity adjustment value
-                        uint8_t asay = TinyMegaI2C.read(0x01);          // Read y-axis sensitivity adjustment value
-                        uint8_t asaz = TinyMegaI2C.read(0x00);          // Read z-axis sensitivity adjustment value
+                        uint8_t asax = TinyMegaI2C.read(0x01);        // Read x-axis sensitivity adjustment value
+                        uint8_t asay = TinyMegaI2C.read(0x01);        // Read y-axis sensitivity adjustment value
+                        uint8_t asaz = TinyMegaI2C.read(0x00);        // Read z-axis sensitivity adjustment value
                         TinyMegaI2C.stop();
                         ASAX = (asax / 256) + 0.5F;
                         ASAY = (asay / 256) + 0.5F;
@@ -39,7 +39,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   Continuous measurement mode 2 for AK8963 has been chosen as a compromise between the performance and power consumptions:
    ```C++
                       void WakeAK8963() {
-                        I2CSetRegister(MAG, AK8963_CNTL1, 0x16);        // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
+                        I2CSetRegister(MAG, AK8963_CNTL1, 0x16);      // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
                       }
 ```
   
