@@ -12,27 +12,48 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   
   A single line of code should be changed according to your location (visit [noaa.gov](https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination) website to calculate the declination angle):
   ```C++
-                       #define Declination     8       // For Kyiv, Ukraine ~ +8 deg (2022 year)
+                      #define Declination     8       // For Kyiv, Ukraine ~ +8 deg (2022 year)
 ```
   The [TinyMegaI2C Library](https://github.com/technoblogy/tiny-mega-i2c) by David Johnson-Davies has been chosen for communication with MPU-9250. However, *TinyMegaI2C.read()* function replaced, as was discussed [here](https://github.com/technoblogy/tiny-mega-i2c/issues/3). The corresponding function proposed by [buckket](https://gist.github.com/buckket/09619e6cdc5dee056d41bfb57065db81) has been used. Also, I2C clock frequency decreased down to 20kHz for a proper work with an internal pull-up resistors.
   
+  The program interact with minimally sufficient set of the MPU-9250 registers:
+  ```C++
+                      /* AK8963 register map */
+                      #define AK8963_ST1          0x02
+                      #define AK8963_XOUT_L       0x03
+                      #define AK8963_CNTL1        0x0A
+                      #define AK8963_ASTC         0x0C
+                      #define AK8963_ASAX         0x10
+                      /* MPU-6500 register map */
+                      #define ACCEL_CONFIG        0x1C
+                      #define ACCEL_CONFIG2       0x1D
+                      #define INT_PIN_CFG         0x37
+                      #define INT_STATUS          0x3A
+                      #define ACCEL_XOUT_H        0x3B
+                      #define PWR_MGMT_1          0x6B
+                      #define PWR_MGMT_2          0x6C
+```
+  
+  
   Two buttons on a board means more flexible device control. Press and hold the *Show North* button, then press the *Show Time* button to launch the compass calibration procedure (each LED blink one-by-one clockwise starting from 12 - the *DisplayCircle()* function indicate start/done of the calibration procedure). During the calibration process, slowly rotate watch so that each side (front, back, left, right, top and bottom) points down towards the earth for a few seconds in turn. A concise algorithm proposed by [kriswiner](https://github.com/kriswiner/MPU6050/wiki/Simple-and-Effective-Magnetometer-Calibration) has been used in order to determine magnetometer calibration parameters:
   ```C++
-                       void MagCalibration(uint16_t points) {
-                       ...
-                       // Hard-iron offsets
-                       OFFX = (MAXX + MINX) >> 1;                           
-                       OFFY = (MAXY + MINY) >> 1;
-                       OFFZ = (MAXZ + MINZ) >> 1;
-                       // Soft-iron scale factors
-                       SCAX = 0.33 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
-                       SCAY = 0.33 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
-                       SCAZ = 0.33 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
-                       ...
-                    }
+                      void MagCalibration(uint16_t points) {
+                      ...
+                      /* Hard-iron offsets */
+                      OFFX = (MAXX + MINX) >> 1;                           
+                      OFFY = (MAXY + MINY) >> 1;
+                      OFFZ = (MAXZ + MINZ) >> 1;
+                      /* Soft-iron scale factors */
+                      SCAX = 0.33 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
+                      SCAY = 0.33 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
+                      SCAZ = 0.33 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
+                      ...
+                      }
 ```
   
   This approach is not the best, but perhaps is the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery depends on it's charge (which is time-dependent value) and spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
+  
+  Another keys combination...
 
   **Displaying North Direction**
   
