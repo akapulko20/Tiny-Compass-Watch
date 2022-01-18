@@ -32,7 +32,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
                     }
 ```
   
-  This approach is not the best, but perhaps is the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that an electromagnetic field of a CR battery is an inertial (it differs when battery on horizontal and vertical positions  ) and in general depends of it's space orientation, thus whenever you need precise direction or you are not shure - just launch the calibration procedure
+  This approach is not the best, but perhaps is the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery depends on it's charge (which is time-dependent value) and spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
 
   **Displaying North Direction**
   
