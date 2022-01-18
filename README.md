@@ -52,9 +52,9 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
                  OFFY = (MAXY + MINY) >> 1;
                  OFFZ = (MAXZ + MINZ) >> 1;
                  /* Soft-iron scale factors */
-                 SCAX = 0.33 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
-                 SCAY = 0.33 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
-                 SCAZ = 0.33 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
+                 SCAX = 0.33F * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
+                 SCAY = 0.33F * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
+                 SCAZ = 0.33F * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
                  ...
                }
 ```
