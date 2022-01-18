@@ -64,7 +64,7 @@ The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](http
   Another keys combination...
   
   Simple math has been used to avoid sine and cosine functions:
-  ```C++
+  ```C
                 AVEC = sqrt((AX * AX) + (AY * AY) + (AZ * AZ));
                 HXh = AVEC * HX * sqrt((AX * AX) + (AZ * AZ)) - HY * AX * AY + HZ * AY * sqrt((AY * AY) + (AZ * AZ));
                 HYh = AVEC * (HY * sqrt((AY * AY) + (AZ * AZ)) + HZ * AX);
