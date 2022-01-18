@@ -63,7 +63,7 @@ and calibration.
   
   Press the *Show Time* button, then press the *Show North* button to launch the time correction procedure (LEDs from 6 to 12 blink one-by-one anti-clockwise - the *DisplaySemicircle()* function indicate start/done of the time correction procedure) - simply subtract 30 seconds from current time.
   
-  Simple math has been used to avoid sine and cosine functions inside field horizontal components:
+  The earth's horizontal magnetic field components have been calculated without sine and cosine functions:
   ```C
                 AVEC = sqrt((AX * AX) + (AY * AY) + (AZ * AZ));
                 HXh = AVEC * HX * sqrt((AX * AX) + (AZ * AZ)) - HY * AX * AY + HZ * AY * sqrt((AY * AY) + (AZ * AZ));
