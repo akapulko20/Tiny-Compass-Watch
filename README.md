@@ -4,7 +4,7 @@
 The Tiny Compass Watch is an extended version of the [Mega Tiny Time Watch](https://github.com/technoblogy/mega-tiny-time-watch/) project created by [David Johnson-Davies](https://github.com/technoblogy). In order to obtain a compass functionality, just three additional components have been used: MPU-9250 (TDK InvenSense), 0.1µF capacitor and a push button. A minimal modifications of the original circuit have been made: push button connected to the PA1 line, MPU-9250 chip connected to the ATtiny814 via Two Wire Interface (INT output of the MPU-9250 connected to PA7 pin just for a possible future improvements).
 
 ![Circuit of the Tiny Compass Watch](figures/circuit.png)
-<p align="center">Figure 1. Circuit diagram of the Tiny Compass Watch
+<p align="center">Circuit diagram of the Tiny Compass Watch
 
   The [MPU-9250](https://invensense.tdk.com/products/motion-tracking/9-axis/mpu-9250/) is a System in Package (SiP) that combines two chips: the MPU-6500 (which contains a 3-axis gyroscope and a 3-axis accelerometer), and the AK8963 (3-axis digital compass). A 3-axis accelerometer have been used for tilt compensation (some theory can be found [here](https://ieeexplore.ieee.org/abstract/document/838300)). The AK8963 has resolution of 16-bits (0.15 µT per LSB) which is quite enough to detect Earth's magnetic field (50-60 µT). Gyroscope remain always not active. The total power consumption in sleep mode is ~9µA, an estimated battery life from a single CR2016 battery is more than a year (from experience: more than 6 months of intensive usage from a single CR2032 battery).
   
@@ -76,7 +76,7 @@ and calibration.
   You can either press or press and hold *Show North* button whenever you want to find out North direction. 24 directions using 12 LEDs. Short flashes single LED or LEDs pair.
   
 ![Circuit of the Tiny Compass Watch](figures/north_show_example.png)
-<p align="center">Figure 2. Examples of how the Tiny Compass Watch displays North direction
+<p align="center">Examples of how the Tiny Compass Watch displays North direction
   
   **Uploading Program**
   
