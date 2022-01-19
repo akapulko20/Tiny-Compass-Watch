@@ -73,10 +73,10 @@ and calibration.
 
   **Displaying North Direction**
   
-  You can either press or press and hold *Show North* button whenever you want to find out north direction. 24 directions using 12 LEDs. Short flashes single LED or LEDs pair.
+  You can either press or press and hold *Show North* button whenever you want to find out North direction. 24 directions using 12 LEDs. Short flashes single LED or LEDs pair.
   
 ![Circuit of the Tiny Compass Watch](figures/north_show_example.png)
-<p align="center">Figure 2. Example One or Two LEDs Short Flashes
+<p align="center">Figure 2. Examples of how the Tiny Compass Watch displays North direction
   
   **Uploading Program**
   
