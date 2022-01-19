@@ -59,7 +59,7 @@ and calibration.
                  ...
                }
 ```
-  May not be the best approach, but probably the simplest one. It was found that accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery (placed very close to the MPU-9250) depends on it's charge (time-dependent value), temperature and even spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
+  May not be the best approach, but probably the simplest one. It was found that an accelerometer calibration is not mandatory (checked for five MPU-9250 chips), but the same algorithm could be used if needed. It should be noted that the electromagnetic field of a CR20XX battery (placed very close to the MPU-9250) depends on it's charge (time-dependent value), temperature and even spatial orientation, so whenever you need a precise direction or the device has not been used for a long time - just launch the calibration procedure.
   
   Press the *Show Time* button, then press the *Show North* button to launch the time correction procedure (LEDs from 6 to 12 blink one-by-one anti-clockwise - the *DisplaySemicircle()* function indicate start/done of the time correction procedure) - simply subtract 30 seconds from current time.
   
