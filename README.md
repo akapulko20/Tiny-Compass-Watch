@@ -80,4 +80,4 @@ and calibration.
   
   **Uploading Program**
   
-  All instructions can be found on [Mega Tiny Time Watch](http://www.technoblogy.com/show?2OKF) page. The only difference is the code size. ATtiny814 and ATtiny1614 are suitable for the Tiny Compass Watch program. [Gerber files](https://github.com/akapulko20/Tiny-Compass-Watch/blob/main/Gerber_Tiny_Compass_Watch%20.zip) for PCB fabrication attached.
+  All instructions can be found on [Mega Tiny Time Watch](http://www.technoblogy.com/show?2OKF) page. The only difference is the code size. ATtiny814 and ATtiny1614 are suitable for the Tiny Compass Watch program. [Gerber files](https://github.com/akapulko20/Tiny-Compass-Watch/raw/main/Gerber_Tiny_Compass_Watch%20.zip) for PCB fabrication attached.
