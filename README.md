@@ -82,4 +82,4 @@ and calibration.
   
   **Uploading Program**
   
-  All instructions can be found on [Mega Tiny Time Watch](http://www.technoblogy.com/show?2OKF) page. The only difference is the code size. ATtiny814 and ATtiny1614 are suitable for the [Tiny Compass Watch](https://github.com/akapulko20/Tiny-Compass-Watch/blob/main/CompassWatch.ino) program. [Gerber files](https://github.com/akapulko20/Tiny-Compass-Watch/raw/main/Gerber_Tiny_Compass_Watch%20.zip) for PCB fabrication attached.
+  All instructions can be found on [Mega Tiny Time Watch](http://www.technoblogy.com/show?2OKF) page. However, there are a few differences. The first one is the code size: ATtiny814 and ATtiny1614 are suitable for the [Tiny Compass Watch](https://github.com/akapulko20/Tiny-Compass-Watch/blob/main/CompassWatch.ino) program. The second one - supply voltage range of 2.4 – 3.6V for the MPU-9250. 'Do not power an assembled board via 5V supply!' [Gerber files](https://github.com/akapulko20/Tiny-Compass-Watch/raw/main/Gerber_Tiny_Compass_Watch%20.zip) for PCB fabrication attached.
