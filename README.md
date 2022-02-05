@@ -39,7 +39,7 @@ and calibration.
     ...
   }
 ```
-  When not in power-down mode, the AK8963 operates in Continuous measurement mode 2 - a compromise between performance and power consumption:
+  When not in power-down mode, the AK8963 operates in Continuous measurement mode 2 - kind of compromise between performance and power consumption:
    ```C++
   void WakeAK8963() {
     I2CSetRegister(MAG, AK8963_CNTL1, 0x16);      // 16-bit output, Continuous measurement mode 2
