@@ -29,9 +29,9 @@ and calibration.
     TinyMegaI2C.start(MAG, 0);
     TinyMegaI2C.write(AK8963_ASAX);
     TinyMegaI2C.restart(MAG, -1);
-    uint8_t asax = TinyMegaI2C.read(0x01);        // Read x-axis sensitivity adjustment value
-    uint8_t asay = TinyMegaI2C.read(0x01);        // Read y-axis sensitivity adjustment value
-    uint8_t asaz = TinyMegaI2C.read(0x00);        // Read z-axis sensitivity adjustment value
+    uint8_t asax = TinyMegaI2C.read(0x01);        // Read x sensitivity adjustment value, send ACK
+    uint8_t asay = TinyMegaI2C.read(0x01);        // Read y sensitivity adjustment value, send ACK
+    uint8_t asaz = TinyMegaI2C.read(0x00);        // Read z sensitivity adjustment value, send NACK
     TinyMegaI2C.stop();
     ASAX = (asax / 256) + 0.5F;
     ASAY = (asay / 256) + 0.5F;
