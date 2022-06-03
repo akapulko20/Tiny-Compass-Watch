@@ -1,5 +1,5 @@
 # Tiny-Compass-Watch
-*An electronic watch that makes hard to get lost*
+*Electronic watch that makes hard to get lost*
 
 ![Front view of the Tiny Compass Watch](figures/front_side.png)
 
