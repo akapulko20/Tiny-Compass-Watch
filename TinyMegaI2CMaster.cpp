@@ -36,9 +36,10 @@ uint8_t TinyMegaI2CMaster::read (uint8_t ack) {
 }
 
 bool TinyMegaI2CMaster::write (uint8_t data) {
-  while (!(TWI0.MSTATUS & TWI_WIF_bm));                               // Wait for write interrupt flag
-  TWI0.MDATA = data;
-  TWI0.MCTRLB = TWI_MCMD_RECVTRANS_gc;                                // Do nothing
+  TWI0.MCTRLB = TWI_MCMD_RECVTRANS_gc;                                // Prime transaction
+  TWI0.MDATA = data;                                                  // Send data
+  while (!(TWI0.MSTATUS & TWI_WIF_bm));                               // Wait for write to complete
+  if (TWI0.MSTATUS & (TWI_ARBLOST_bm | TWI_BUSERR_bm))return false;   // Fails if bus error or arblost
   return !(TWI0.MSTATUS & TWI_RXACK_bm);                              // Returns true if slave gave an ACK
 }
 
