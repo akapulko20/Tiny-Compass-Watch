@@ -391,8 +391,6 @@ void SetTime () {
 }
 
 void setup() {
-  // Turn on pullups on unused pin for minimal power in sleep
-  PORTA.PIN7CTRL = PORT_PULLUPEN_bm;
   DisplaySetup();
   SleepSetup();
   // Set time on power-on
@@ -401,8 +399,6 @@ void setup() {
   TinyMegaI2C.init();
   // Set mpu9250: read samples and go to sleep
   SetMPU9250();
-  // ! Disable TWI initially
-  TWI0.MCTRLB = TWI_MCMD_STOP_gc;
   ShowTime = true;
 }
 
@@ -451,7 +447,6 @@ void loop() {
       Hours = Heading / 2;
       Fivemins = 12;                                    // One LED off
     }
-    TWI0.MCTRLB = TWI_MCMD_STOP_gc;                     // ! Disable TWI to reduce power consumption
     DisplayOn();
     MyDelay(Tickspersec >> 5);                          // Tickspersec / 32
     DisplayOff();
@@ -463,7 +458,6 @@ void loop() {
   }
   if (StartCalibration) {
     MagCalibration(CAL_COUNT);
-    TWI0.MCTRLB = TWI_MCMD_STOP_gc;                     // ! Disable TWI to reduce power consumption
     StartCalibration = false;
     ShowNorth = false;
     ShowTime = false;
