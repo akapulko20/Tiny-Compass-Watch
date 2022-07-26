@@ -33,9 +33,9 @@ and calibration.
     uint8_t asay = TinyMegaI2C.read(0x01);        // Read y sensitivity adjustment value, send ACK
     uint8_t asaz = TinyMegaI2C.read(0x00);        // Read z sensitivity adjustment value, send NACK
     TinyMegaI2C.stop();
-    ASAX = (asax / 256) + 0.5F;
-    ASAY = (asay / 256) + 0.5F;
-    ASAZ = (asaz / 256) + 0.5F;
+    ASAX = (float) (asax / 256.) + .5;
+    ASAY = (float) (asay / 256.) + .5;
+    ASAZ = (float) (asaz / 256.) + .5;
     ...
   }
 ```
@@ -55,9 +55,9 @@ and calibration.
     OFFY = (MAXY + MINY) >> 1;
     OFFZ = (MAXZ + MINZ) >> 1;
     /* Soft-iron scale factors */
-    SCAX = 0.33F * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
-    SCAY = 0.33F * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
-    SCAZ = 0.33F * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
+    SCAX = (float) (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX)) * .33;
+    SCAY = (float) (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY)) * .33;
+    SCAZ = (float) (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ)) * .33;
     ...
   }
 ```
