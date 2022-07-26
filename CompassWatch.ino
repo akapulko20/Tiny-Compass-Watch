@@ -19,7 +19,6 @@
 
 #define MIN(a,b)            (((a)<(b))?(a):(b))
 #define MAX(a,b)            (((a)>(b))?(a):(b))
-#define DIV3                0.33F
 
 #define ACEL_GIRO           0x68                        // MPU-6500 address
 #define MAG                 0x0C                        // AK8963 address
@@ -106,9 +105,9 @@ void SetMPU9250() {
   uint8_t asay = TinyMegaI2C.read(0x01);                // Read y-axis sensitivity adjustment value
   uint8_t asaz = TinyMegaI2C.read(0x00);                // Read z-axis sensitivity adjustment value
   TinyMegaI2C.stop();
-  ASAX = (asax / 256) + 0.5F;
-  ASAY = (asay / 256) + 0.5F;
-  ASAZ = (asaz / 256) + 0.5F;
+  ASAX = (float) (asax / 256.) + .5;
+  ASAY = (float) (asay / 256.) + .5;
+  ASAZ = (float) (asaz / 256.) + .5;
   WakeAK8963(); MagRead(); SleepAK8963();
 }
 
@@ -161,9 +160,9 @@ void MagCalibration(uint16_t points) {
    OFFY = (MAXY + MINY) >> 1;
    OFFZ = (MAXZ + MINZ) >> 1;
                                                         // Calculate Soft-iron scale factors
-   SCAX = DIV3 * (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX));
-   SCAY = DIV3 * (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY));
-   SCAZ = DIV3 * (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ));
+   SCAX = (float) (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX)) * .33;
+   SCAY = (float) (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY)) * .33;
+   SCAZ = (float) (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ)) * .33;
    SleepAK8963();
    DisplayCircle();
 }
