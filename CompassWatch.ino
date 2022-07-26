@@ -14,7 +14,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <util/delay.h>
 #include "TinyMegaI2CMaster.h"
 
 #define MIN(a,b)            (((a)<(b))?(a):(b))
@@ -39,18 +38,22 @@
 #define PWR_MGMT_2          0x6C
 
 #define CAL_COUNT       3000                            // Calibration points
-#define Declination     12                              // For Kyiv, Ukraine ~ +8 deg (2022 year) - https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination
+#define Declination     8                               // For Kyiv, Ukraine ~ +8 deg (2022 year) - https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml#declination
 #define DISOFF          7                               // Compass display offset, deg
 
-int16_t HX, HY, HZ, Heading;                            // Magnetic field data variables
+int16_t HX, HY, HZ;                                     // Magnetic field data variables
 float ASAX, ASAY, ASAZ;                                 // Magnetic sensitivity adjustment data
 float SCAX, SCAY, SCAZ;                                 // Magnetometer scale values
 int16_t OFFX, OFFY, OFFZ;                               // Magnetometer offset values
-int32_t AX, AY, AZ, AVEC;                               // Accelerometer data variables
+int32_t AX, AY, AZ;                                     // Accelerometer data variables
 int32_t BUFX, BUFY, BUFZ;                               // Buffer variables for average calculations
-float HXh, HYh;                                         // Horizontal magnetic field components
 
 const int Tickspersec = 250;                            // Units of MyDelay()
+
+int Pins[4][4] = {{ -1,  8,  6,  4 },                   // Pin assignments
+                  {  7, -1, 11,  9 },
+                  {  0, 10, -1,  2 },
+                  {  5,  3,  1, -1 }};
 
 volatile int Timeout;
 volatile uint8_t Cycle = 0;
@@ -59,10 +62,10 @@ volatile unsigned int Secs = 0;
 volatile int Hours = 0;                                 // From 0 to 11, or 12 = off.
 volatile int Fivemins = 0;                              // From 0 to 11, or 12 = off.
 
-volatile int ShowTime = false;
-volatile int ShowNorth = false;
-volatile int StartCalibration = false;
-volatile int TimeCorrection = false;
+volatile uint8_t ShowTime = 0;
+volatile uint8_t ShowNorth = 0;
+
+// I2C communication ************************************************
 
 void I2CSetRegister(uint8_t add, uint8_t reg, uint8_t bits) {
   TinyMegaI2C.start(add, 0);
@@ -79,7 +82,6 @@ void SleepAccel() {
 void WakeAccel() {
   I2CSetRegister(ACEL_GIRO, PWR_MGMT_1, 0x08);          // Internal 20MHz oscillator clock source, Power down internal PTAT voltage generator and PTAT ADC
   I2CSetRegister(ACEL_GIRO, PWR_MGMT_2, 0x07);          // Enable accelerometer, keep giro off
-  _delay_ms(10);                                        // !!!Wait 10ms for oscillations to stabilize
 }
 
 void SleepAK8963() {
@@ -88,27 +90,6 @@ void SleepAK8963() {
 
 void WakeAK8963() {
   I2CSetRegister(MAG, AK8963_CNTL1, 0x16);              // Set 16-bit output, Continuous measurement mode 2 (100Hz rate)
-}
-
-void SetMPU9250() {
-  NorthButtonEnable();
-  I2CSetRegister(ACEL_GIRO, PWR_MGMT_1, 0x80);          // Reset chip
-  I2CSetRegister(ACEL_GIRO, ACCEL_CONFIG, 0x00);        // Bytes 3 and 4 (00) for +-2G
-  I2CSetRegister(ACEL_GIRO, ACCEL_CONFIG2, 0x02);       // DLPF config: rate 1 kHz, delay 2.88 ms
-  I2CSetRegister(ACEL_GIRO, INT_PIN_CFG, 0x02);         // Set bypass enable bit
-  WakeAccel(); AccelRead(); SleepAccel();
-  I2CSetRegister(MAG, AK8963_CNTL1, 0x0F);              // Fuse ROM access mode
-  TinyMegaI2C.start(MAG, 0);
-  TinyMegaI2C.write(AK8963_ASAX);
-  TinyMegaI2C.restart(MAG, -1);
-  uint8_t asax = TinyMegaI2C.read(0x01);                // Read x-axis sensitivity adjustment value
-  uint8_t asay = TinyMegaI2C.read(0x01);                // Read y-axis sensitivity adjustment value
-  uint8_t asaz = TinyMegaI2C.read(0x00);                // Read z-axis sensitivity adjustment value
-  TinyMegaI2C.stop();
-  ASAX = (float) (asax / 256.) + .5;
-  ASAY = (float) (asay / 256.) + .5;
-  ASAZ = (float) (asaz / 256.) + .5;
-  WakeAK8963(); MagRead(); SleepAK8963();
 }
 
 uint8_t MagRaw() {
@@ -138,53 +119,6 @@ uint8_t MagRaw() {
    else {
      return(1);
    }
-}
-
-void MagCalibration(uint16_t points) {
-   int16_t MINX, MAXX, MINY, MAXY, MINZ, MAXZ;
-   MINX = MINY = MINZ = 32767;
-   MAXX = MAXY = MAXZ = -32768;
-   DisplayCircle();
-   WakeAK8963();
-   for (uint16_t i=0; i<points; i++) {
-     uint8_t data = MagRaw();
-     if (data) {
-       HX *= ASAX; HY *= ASAY; HZ *= ASAZ;              // Adjusted measurement data: Hadj = H * ( (ASA-128) / 256 + 1)
-       MINX = MIN(HX, MINX); MAXX = MAX(HX, MAXX);      // Max and Min Hx, Hy, Hz values
-       MINY = MIN(HY, MINY); MAXY = MAX(HY, MAXY);
-       MINZ = MIN(HZ, MINZ); MAXZ = MAX(HZ, MAXZ);
-     }
-   }
-                                                        // Calculate Hard-iron offsets
-   OFFX = (MAXX + MINX) >> 1;                           
-   OFFY = (MAXY + MINY) >> 1;
-   OFFZ = (MAXZ + MINZ) >> 1;
-                                                        // Calculate Soft-iron scale factors
-   SCAX = (float) (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX)) * .33;
-   SCAY = (float) (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY)) * .33;
-   SCAZ = (float) (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ)) * .33;
-   SleepAK8963();
-   DisplayCircle();
-}
-
-// Signal for magnetometer calibration start/stop
-
-void DisplayCircle() {
-  Fivemins = 12;
-  for (uint8_t i=0; i<12; i++) {
-    Hours = i;
-    DisplayOn(); MyDelay(Tickspersec >> 3); DisplayOff();
-  }
-}
-
-// Signal for time correction
-
-void DisplaySemicircle() {
-  Fivemins = 12;
-  for (uint8_t i=6; i>0; i--) {
-    Hours = i;
-    DisplayOn(); MyDelay(Tickspersec >> 3); DisplayOff();
-  }
 }
 
 void MagRead() {                                        // Take avarage of 16 samples
@@ -229,12 +163,53 @@ void AccelRead() {                                      // Take avarage of 16 sa
   AX = BUFX >> 4;  AY = BUFY >> 4; AZ = BUFZ >> 4;
 }
 
-// Pin assignments
+void MagCalibration(uint16_t points) {
+   int16_t MINX, MAXX, MINY, MAXY, MINZ, MAXZ;
+   MINX = MINY = MINZ = 32767;
+   MAXX = MAXY = MAXZ = -32768;
+   DisplayCircle();
+   WakeAK8963();
+   for (uint16_t i=0; i<points; i++) {
+     uint8_t data = MagRaw();
+     if (data) {
+       HX *= ASAX; HY *= ASAY; HZ *= ASAZ;              // Adjusted measurement data: Hadj = H * ( (ASA-128) / 256 + 1)
+       MINX = MIN(HX, MINX); MAXX = MAX(HX, MAXX);      // Max and Min Hx, Hy, Hz values
+       MINY = MIN(HY, MINY); MAXY = MAX(HY, MAXY);
+       MINZ = MIN(HZ, MINZ); MAXZ = MAX(HZ, MAXZ);
+     }
+   }
+   // Calculate Hard-iron offsets
+   OFFX = (MAXX + MINX) >> 1;                           
+   OFFY = (MAXY + MINY) >> 1;
+   OFFZ = (MAXZ + MINZ) >> 1;
+   // Calculate Soft-iron scale factors
+   SCAX = (float) (1 + (MAXY + MAXZ - MINY - MINZ) / (MAXX - MINX)) * .33;
+   SCAY = (float) (1 + (MAXX + MAXZ - MINX - MINZ) / (MAXY - MINY)) * .33;
+   SCAZ = (float) (1 + (MAXX + MAXY - MINX - MINY) / (MAXZ - MINZ)) * .33;
+   SleepAK8963();
+   DisplayCircle();
+}
+// Time correction procedure
+void TimeCorrection(uint8_t backSecs) {
+   DisplaySemicircle();
+   if (Secs > backSecs) cli(); Secs -= backSecs; sei();
+}
 
-int Pins[4][4] = {{ -1,  8,  6,  4 },   
-                  {  7, -1, 11,  9 },
-                  {  0, 10, -1,  2 },
-                  {  5,  3,  1, -1 }};
+// Calculate heading angle ******************************************
+
+uint16_t MyHeading (int8_t angular_adjustment) {
+  WakeAccel(); AccelRead(); SleepAccel();
+  WakeAK8963(); MagRead(); SleepAK8963();
+  double AVEC = sqrt(double((AX * AX) + (AY * AY) + (AZ * AZ)));
+  // Horizontal magnetic field components
+  double HXh = AVEC * HX * sqrt(double((AX * AX) + (AZ * AZ))) - HY * AX * AY + HZ * AY * sqrt(double((AY * AY) + (AZ * AZ)));
+  double HYh = AVEC * (HY * sqrt(double((AY * AY) + (AZ * AZ))) + HZ * AX);
+  int16_t Heading = int(atan2(HYh, HXh) * RAD_TO_DEG);  // Magnetic North
+  Heading += angular_adjustment;                        // Geographic North
+  if (Heading < 0) Heading += 360;                      // Allow for under/overflow
+  if (Heading >= 360) Heading -= 360;
+  return(Heading);
+}
 
 // Display multiplexer **********************************************
 
@@ -286,13 +261,31 @@ void DisplayNextRow() {
   PORTA.OUT = bits;                                     // Set outputs high
 }
 
+// Signal for magnetometer calibration start/stop
+void DisplayCircle() {
+  Fivemins = 12;
+  for (uint8_t i=0; i<12; i++) {
+    Hours = i;
+    DisplayOn(); MyDelay(Tickspersec >> 3); DisplayOff();
+  }
+}
+
+// Signal for time correction
+void DisplaySemicircle() {
+  Fivemins = 12;
+  for (uint8_t i=6; i>0; i--) {
+    Hours = i;
+    DisplayOn(); MyDelay(Tickspersec >> 3); DisplayOff();
+  }
+}
+
 // Delay in 1/250 of a second
 void MyDelay (int count) {
   Timeout = count;
   while (Timeout);
 }
 
-// Real-Time Clock **********************************************
+// Real-Time Clock **************************************************
 
 void RTCSetup () {
   uint8_t temp;
@@ -339,7 +332,7 @@ ISR(RTC_PIT_vect) {
   Secs = (Secs + 1) % 43200;                            // Wrap around after 12 hours
 }
 
-// Show time button **********************************************
+// Buttons and WOM **************************************************
 
 void TimeButtonEnable () {
   PORTA.PIN2CTRL = PORT_PULLUPEN_bm;                    // Pullup
@@ -352,21 +345,22 @@ void NorthButtonEnable () {
 }
 
 ISR(PORTA_PORT_vect) {
-  if (PORTA.INTFLAGS & 0x04){
-    PORTA.PIN2CTRL = PORT_PULLUPEN_bm;                  // Disable button
-    PORTA.INTFLAGS = PORT_INT2_bm;                      // Clear PA2 interrupt flag
-    ShowTime = true;
-    ShowNorth = false;                                  // Two buttons pressed exception
+  switch (PORTA.INTFLAGS) {
+    case 0x04:                                          // PA2 button interrupt
+      PORTA.PIN2CTRL = PORT_PULLUPEN_bm;                // Disable PA2 button
+      ShowTime = 1;
+      break;
+    case 0x02:                                          // PA1 button interrupt
+      PORTA.PIN1CTRL = PORT_PULLUPEN_bm;                // Disable PA1 button
+      ShowNorth = 1;
+      break;
+    default:      
+      break;
   }
-  if (PORTA.INTFLAGS & 0x02){
-    PORTA.PIN1CTRL = PORT_PULLUPEN_bm;                  // Disable button
-    PORTA.INTFLAGS = PORT_INT1_bm;                      // Clear PA1 interrupt flag
-    ShowTime = false;                                   // Two buttons pressed exception
-    ShowNorth = true;
-  }   
+  PORTA.INTFLAGS = PORT_INT1_bm | PORT_INT2_bm;
 }
 
-// Setup **********************************************
+// Setup ************************************************************
 
 void SleepSetup () {
   SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc;
@@ -387,6 +381,27 @@ void SetTime () {
     offset++;
     secs = secs + 300;
   }
+}
+
+void SetMPU9250() {
+  NorthButtonEnable();
+  I2CSetRegister(ACEL_GIRO, PWR_MGMT_1, 0x80);          // Reset chip
+  I2CSetRegister(ACEL_GIRO, ACCEL_CONFIG, 0x00);        // Bytes 3 and 4 (00) for +-2G
+  I2CSetRegister(ACEL_GIRO, ACCEL_CONFIG2, 0x02);       // DLPF config: rate 1 kHz, delay 2.88 ms
+  I2CSetRegister(ACEL_GIRO, INT_PIN_CFG, 0x02);         // Set bypass enable bit
+  WakeAccel(); AccelRead(); SleepAccel();
+  I2CSetRegister(MAG, AK8963_CNTL1, 0x0F);              // Fuse ROM access mode
+  TinyMegaI2C.start(MAG, 0);
+  TinyMegaI2C.write(AK8963_ASAX);
+  TinyMegaI2C.restart(MAG, -1);
+  uint8_t asax = TinyMegaI2C.read(0x01);                // Read x-axis sensitivity adjustment value
+  uint8_t asay = TinyMegaI2C.read(0x01);                // Read y-axis sensitivity adjustment value
+  uint8_t asaz = TinyMegaI2C.read(0x00);                // Read z-axis sensitivity adjustment value
+  TinyMegaI2C.stop();
+  ASAX = (float) (asax / 256.) + .5;
+  ASAY = (float) (asay / 256.) + .5;
+  ASAZ = (float) (asaz / 256.) + .5;
+  WakeAK8963(); MagRead(); SleepAK8963();
 }
 
 void setup() {
@@ -420,53 +435,19 @@ void loop() {
       Fivemins = 12; MyDelay(Tickspersec/5);
     }
     DisplayOff();
-    ShowTime = false;
-    if (ShowNorth) {                                    // Two buttons pressed - Time Correction ON
-      ShowNorth = false;
-      TimeCorrection = true;
-    }
+    if (ShowNorth) TimeCorrection(30);                  // Show North button pressed, while time displaying: Time correction procedure ON (-30 sec from current time)
+    ShowTime = ShowNorth = 0;
   }
   if (ShowNorth) {
-    WakeAccel(); AccelRead(); SleepAccel();
-    WakeAK8963(); MagRead(); SleepAK8963();
-    AVEC = sqrt((AX * AX) + (AY * AY) + (AZ * AZ));
-    HXh = AVEC * HX * sqrt((AX * AX) + (AZ * AZ)) - HY * AX * AY + HZ * AY * sqrt((AY * AY) + (AZ * AZ));
-    HYh = AVEC * (HY * sqrt((AY * AY) + (AZ * AZ)) + HZ * AX);
-    Heading = atan2(HYh, HXh) * RAD_TO_DEG;             // Magnetic North
-    Heading += Declination;                             // Geographic North
-    Heading += DISOFF;                                  // Display shift
-    if (Heading < 0) Heading += 360;                    // Allow for under/overflow
-    if (Heading >= 360) Heading -= 360;
-    Heading /= 15;                                      // Course in range 0..23                           
-    if (Heading % 2) {                                  // North direction lies between LEDs pair
-      Hours = Heading / 2;                          
-      Fivemins = (Hours + 1) % 12;
-    }
-    else {                                              // North direction lies through one of the LEDs
-      Hours = Heading / 2;
-      Fivemins = 12;                                    // One LED off
-    }
+    uint8_t Course = MyHeading(Declination+DISOFF) / 15;// Course in range 0..23
+    Hours = Course >> 1;
+    if (Course % 2) Fivemins = (Hours + 1) % 12;        // North direction lies between LEDs pair
+    else Fivemins = 12;                                 // North direction lies through one of the LEDs, off unused LED
     DisplayOn();
     MyDelay(Tickspersec >> 5);                          // Tickspersec / 32
     DisplayOff();
-    ShowNorth = false;
-    if (ShowTime) {                                     // Calibration ON
-      ShowTime = false;
-      StartCalibration = true;
-    }
-  }
-  if (StartCalibration) {
-    MagCalibration(CAL_COUNT);
-    StartCalibration = false;
-    ShowNorth = false;
-    ShowTime = false;
-  }
-  if (TimeCorrection) {
-    DisplaySemicircle();
-    if (Secs > 30) cli(); Secs -= 30; sei();            // Time correction (-30 sec)
-    TimeCorrection = false;
-    ShowNorth = false;
-    ShowTime = false;
+    if (ShowTime) MagCalibration(CAL_COUNT);            // Show Time button pressed, while holding Show North button: Magnetometer calibration procedure ON
+    ShowTime = ShowNorth = 0;
   }
   TimeButtonEnable();
   NorthButtonEnable();
