@@ -198,8 +198,8 @@ void TimeCorrection(uint8_t backSecs) {
 // Calculate heading angle ******************************************
 
 uint16_t MyHeading (int8_t angular_adjustment) {
-  WakeAccel(); AccelRead(); SleepAccel();
-  WakeAK8963(); MagRead(); SleepAK8963();
+  WakeAccel(); AccelRead(); SleepAccel();               // Update global variables AX, AY, AZ
+  WakeAK8963(); MagRead(); SleepAK8963();               // Update global variables HX, HY, HZ
   double AVEC = sqrt(double((AX * AX) + (AY * AY) + (AZ * AZ)));
   // Horizontal magnetic field components
   double HXh = AVEC * HX * sqrt(double((AX * AX) + (AZ * AZ))) - HY * AX * AY + HZ * AY * sqrt(double((AY * AY) + (AZ * AZ)));
