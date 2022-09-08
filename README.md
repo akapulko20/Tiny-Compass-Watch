@@ -68,18 +68,18 @@ and calibration.
   The earth's horizontal magnetic field components have been calculated without explicit sine or cosine functions:
   ```C
   uint16_t MyHeading (int8_t angular_adjustment) {
-  WakeAccel(); AccelRead(); SleepAccel();               // Update global variables AX, AY, AZ
-  WakeAK8963(); MagRead(); SleepAK8963();               // Update global variables HX, HY, HZ
-  double AVEC = sqrt(double((AX * AX) + (AY * AY) + (AZ * AZ)));
-  // Horizontal magnetic field components
-  double HXh = AVEC * HX * sqrt(double((AX * AX) + (AZ * AZ))) - HY * AX * AY + HZ * AY * sqrt(double((AY * AY) + (AZ * AZ)));
-  double HYh = AVEC * (HY * sqrt(double((AY * AY) + (AZ * AZ))) + HZ * AX);
-  int16_t Heading = int(atan2(HYh, HXh) * RAD_TO_DEG);  // Magnetic North
-  Heading += angular_adjustment;                        // Geographic North
-  if (Heading < 0) Heading += 360;                      // Allow for under/overflow
-  if (Heading >= 360) Heading -= 360;
-  return(Heading);
-}
+    WakeAccel(); AccelRead(); SleepAccel();               // Update global variables AX, AY, AZ
+    WakeAK8963(); MagRead(); SleepAK8963();               // Update global variables HX, HY, HZ
+    double AVEC = sqrt(double((AX * AX) + (AY * AY) + (AZ * AZ)));
+    // Horizontal magnetic field components
+    double HXh = AVEC * HX * sqrt(double((AX * AX) + (AZ * AZ))) - HY * AX * AY + HZ * AY * sqrt(double((AY * AY) + (AZ * AZ)));
+    double HYh = AVEC * (HY * sqrt(double((AY * AY) + (AZ * AZ))) + HZ * AX);
+    int16_t Heading = int(atan2(HYh, HXh) * RAD_TO_DEG);  // Magnetic North
+    Heading += angular_adjustment;                        // Geographic North
+    if (Heading < 0) Heading += 360;                      // Allow for under/overflow
+    if (Heading >= 360) Heading -= 360;
+    return(Heading);
+  }
 ```
 
   **Displaying North Direction**
